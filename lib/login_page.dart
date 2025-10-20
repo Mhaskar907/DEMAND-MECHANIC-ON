@@ -3,6 +3,7 @@ import 'auth_service.dart';
 import 'package:provider/provider.dart';
 import 'theme/app_theme.dart';
 import 'signup_page.dart';
+import 'utils/dimensions.dart';
 
 class LoginPage extends StatefulWidget {
   final String role;
@@ -63,6 +64,8 @@ class _LoginPageState extends State<LoginPage>
 
   @override
   Widget build(BuildContext context) {
+    final dim = Dimensions(context);
+    
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -70,7 +73,7 @@ class _LoginPageState extends State<LoginPage>
         ),
         child: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
+            padding: EdgeInsets.all(dim.width20),
             child: FadeTransition(
               opacity: _fadeAnimation,
               child: SlideTransition(
@@ -78,20 +81,20 @@ class _LoginPageState extends State<LoginPage>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: 40),
+                    SizedBox(height: dim.height30),
                     // Header Section
-                    _buildHeader(),
-                    const SizedBox(height: 48),
+                    _buildHeader(dim),
+                    SizedBox(height: dim.height45),
                     // Login Form
-                    _buildLoginForm(),
-                    const SizedBox(height: 32),
-                    _buildOrDivider(),
-                    const SizedBox(height: 16),
-                    _buildGoogleButton(),
-                    const SizedBox(height: 32),
+                    _buildLoginForm(dim),
+                    SizedBox(height: dim.height30),
+                    _buildOrDivider(dim),
+                    SizedBox(height: dim.height15),
+                    _buildGoogleButton(dim),
+                    SizedBox(height: dim.height30),
                     // Sign Up Link
-                    _buildSignUpLink(),
-                    const SizedBox(height: 20),
+                    _buildSignUpLink(dim),
+                    SizedBox(height: dim.height20),
                   ],
                 ),
               ),
@@ -102,46 +105,46 @@ class _LoginPageState extends State<LoginPage>
     );
   }
 
-  Widget _buildOrDivider() {
+  Widget _buildOrDivider(Dimensions dim) {
     return Row(
       children: [
         Expanded(child: Divider(color: Colors.grey[300])),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 12),
-          child: Text('OR'),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: dim.width10),
+          child: const Text('OR'),
         ),
         Expanded(child: Divider(color: Colors.grey[300])),
       ],
     );
   }
 
-  Widget _buildGoogleButton() {
+  Widget _buildGoogleButton(Dimensions dim) {
     return SizedBox(
-      height: 52,
+      height: dim.height45 + dim.height10,
       child: OutlinedButton.icon(
         onPressed: _isLoading ? null : _signInWithGoogle,
         style: OutlinedButton.styleFrom(
           side: BorderSide(color: Colors.grey[300]!),
           backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(dim.radius15),
           ),
         ),
         icon: Image.asset(
           'assets/google.png',
-          width: 20,
-          height: 20,
-          errorBuilder: (_, __, ___) => const Icon(Icons.login, size: 18),
+          width: dim.iconSize24,
+          height: dim.iconSize24,
+          errorBuilder: (_, __, ___) => Icon(Icons.login, size: dim.iconSize16),
         ),
-        label: const Text(
+        label: Text(
           'Continue with Google',
-          style: TextStyle(fontWeight: FontWeight.w600),
+          style: TextStyle(fontWeight: FontWeight.w600, fontSize: dim.font16),
         ),
       ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(Dimensions dim) {
     return Column(
       children: [
         // Back Button
@@ -150,10 +153,10 @@ class _LoginPageState extends State<LoginPage>
           child: IconButton(
             onPressed: () => Navigator.pop(context),
             icon: Container(
-              padding: const EdgeInsets.all(8),
+              padding: EdgeInsets.all(dim.height10),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(dim.radius15),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.1),
@@ -162,24 +165,24 @@ class _LoginPageState extends State<LoginPage>
                   ),
                 ],
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.arrow_back,
                 color: AppTheme.textPrimary,
-                size: 20,
+                size: dim.iconSize24,
               ),
             ),
           ),
         ),
-        const SizedBox(height: 32),
+        SizedBox(height: dim.height30),
         // Role Icon
         Container(
-          width: 80,
-          height: 80,
+          width: dim.height45 + dim.height30,
+          height: dim.height45 + dim.height30,
           decoration: BoxDecoration(
             gradient: widget.role == 'user' 
                 ? AppTheme.primaryGradient 
                 : AppTheme.secondaryGradient,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(dim.radius20),
             boxShadow: [
               BoxShadow(
                 color: (widget.role == 'user' 
@@ -192,35 +195,37 @@ class _LoginPageState extends State<LoginPage>
           ),
           child: Icon(
             widget.role == 'user' ? Icons.person : Icons.build,
-            size: 40,
+            size: dim.iconSize24 * 1.5,
             color: Colors.white,
           ),
         ),
-        const SizedBox(height: 24),
+        SizedBox(height: dim.height20),
         Text(
           'Welcome Back!',
           style: Theme.of(context).textTheme.displaySmall?.copyWith(
             fontWeight: FontWeight.bold,
             color: AppTheme.textPrimary,
+            fontSize: dim.font26,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: dim.height10),
         Text(
           'Sign in as ${widget.role == 'user' ? 'User' : 'Mechanic'}',
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
             color: AppTheme.textSecondary,
+            fontSize: dim.font16,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildLoginForm() {
+  Widget _buildLoginForm(Dimensions dim) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(dim.width20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(dim.radius20),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -238,13 +243,16 @@ class _LoginPageState extends State<LoginPage>
             TextFormField(
               controller: _emailController,
               keyboardType: TextInputType.emailAddress,
+              style: TextStyle(fontSize: dim.font16),
               decoration: InputDecoration(
                 labelText: 'Email Address',
+                labelStyle: TextStyle(fontSize: dim.font16),
                 hintText: 'Enter your email',
-                prefixIcon: const Icon(Icons.email_outlined),
+                hintStyle: TextStyle(fontSize: dim.font16),
+                prefixIcon: Icon(Icons.email_outlined, size: dim.iconSize24),
                 suffixIcon: _emailController.text.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear),
+                        icon: Icon(Icons.clear, size: dim.iconSize24),
                         onPressed: () {
                           _emailController.clear();
                           setState(() {});
@@ -263,18 +271,22 @@ class _LoginPageState extends State<LoginPage>
               },
               onChanged: (value) => setState(() {}),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: dim.height20),
             // Password Field
             TextFormField(
               controller: _passwordController,
               obscureText: _obscurePassword,
+              style: TextStyle(fontSize: dim.font16),
               decoration: InputDecoration(
                 labelText: 'Password',
+                labelStyle: TextStyle(fontSize: dim.font16),
                 hintText: 'Enter your password',
-                prefixIcon: const Icon(Icons.lock_outline),
+                hintStyle: TextStyle(fontSize: dim.font16),
+                prefixIcon: Icon(Icons.lock_outline, size: dim.iconSize24),
                 suffixIcon: IconButton(
                   icon: Icon(
                     _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                    size: dim.iconSize24,
                   ),
                   onPressed: () {
                     setState(() {
@@ -290,7 +302,7 @@ class _LoginPageState extends State<LoginPage>
                 return null;
               },
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: dim.height15),
             // Forgot Password
             Align(
               alignment: Alignment.centerRight,
@@ -302,18 +314,18 @@ class _LoginPageState extends State<LoginPage>
                     ),
                   );
                 },
-                child: const Text('Forgot Password?'),
+                child: Text('Forgot Password?', style: TextStyle(fontSize: dim.font16)),
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: dim.height20),
             // Error Message
             if (_errorMessage != null)
               Container(
-                padding: const EdgeInsets.all(12),
-                margin: const EdgeInsets.only(bottom: 16),
+                padding: EdgeInsets.all(dim.height10),
+                margin: EdgeInsets.only(bottom: dim.height15),
                 decoration: BoxDecoration(
                   color: AppTheme.errorColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(dim.radius15 / 2),
                   border: Border.all(
                     color: AppTheme.errorColor.withOpacity(0.3),
                   ),
@@ -323,15 +335,15 @@ class _LoginPageState extends State<LoginPage>
                     Icon(
                       Icons.error_outline,
                       color: AppTheme.errorColor,
-                      size: 20,
+                      size: dim.iconSize24,
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: dim.width10),
                     Expanded(
                       child: Text(
                         _errorMessage!,
                         style: TextStyle(
                           color: AppTheme.errorColor,
-                          fontSize: 14,
+                          fontSize: dim.font16,
                         ),
                       ),
                     ),
@@ -340,7 +352,7 @@ class _LoginPageState extends State<LoginPage>
               ),
             // Login Button
             SizedBox(
-              height: 56,
+              height: dim.height45 + dim.height10,
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _login,
                 style: ElevatedButton.styleFrom(
@@ -348,22 +360,22 @@ class _LoginPageState extends State<LoginPage>
                       ? AppTheme.primaryColor 
                       : AppTheme.secondaryColor,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(dim.radius15),
                   ),
                 ),
                 child: _isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
+                    ? SizedBox(
+                        width: dim.iconSize24,
+                        height: dim.iconSize24,
+                        child: const CircularProgressIndicator(
                           strokeWidth: 2,
                           valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                         ),
                       )
-                    : const Text(
+                    : Text(
                         'Sign In',
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: dim.font16,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -375,7 +387,7 @@ class _LoginPageState extends State<LoginPage>
     );
   }
 
-  Widget _buildSignUpLink() {
+  Widget _buildSignUpLink(Dimensions dim) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -383,6 +395,7 @@ class _LoginPageState extends State<LoginPage>
           'Don\'t have an account? ',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: AppTheme.textSecondary,
+            fontSize: dim.font16,
           ),
         ),
         TextButton(
@@ -404,7 +417,7 @@ class _LoginPageState extends State<LoginPage>
               ),
             );
           },
-          child: const Text('Sign Up'),
+          child: Text('Sign Up', style: TextStyle(fontSize: dim.font16)),
         ),
       ],
     );

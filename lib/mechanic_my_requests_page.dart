@@ -59,14 +59,20 @@ class _MechanicMyRequestsPageState extends State<MechanicMyRequestsPage>
 
   Future<void> _loadMyRequests() async {
     try {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+
       final authService = Provider.of<AuthService>(context, listen: false);
       final supabase = Supabase.instance.client;
       
       // Fetch service requests where the mechanic is involved
+      // Using OR condition to get requests where mechanic is either assigned or accepted
       final response = await supabase
           .from('service_requests')
           .select('*')
-          .contains('mechanic_ids', [authService.currentUser!.id])
+          .or('mechanic_ids.cs.{${authService.currentUser!.id}},accepted_mechanic_id.eq.${authService.currentUser!.id}')
           .order('created_at', ascending: false);
 
       // Get user profiles separately
@@ -89,6 +95,8 @@ class _MechanicMyRequestsPageState extends State<MechanicMyRequestsPage>
         }
       }
 
+      if (!mounted) return;
+
       setState(() {
         _myRequests = response
             .map<ServiceRequest>((data) => ServiceRequest.fromMap(data))
@@ -98,11 +106,13 @@ class _MechanicMyRequestsPageState extends State<MechanicMyRequestsPage>
       });
       
       // Debug information
-      print('Loaded ${_myRequests.length} requests for mechanic');
+      print('Loaded ${_myRequests.length} requests for mechanic ${authService.currentUser!.id}');
       for (var request in _myRequests) {
-        print('Request ${request.id}: ${request.status} - ${request.vehicleType}');
+        print('Request ${request.id}: ${request.status} - ${request.vehicleType} - Accepted by: ${request.acceptedMechanicId}');
       }
     } catch (e) {
+      print('Error loading mechanic requests: $e');
+      if (!mounted) return;
       setState(() {
         _myRequests = []; // Empty list on error
         _userProfiles = {};
@@ -117,20 +127,41 @@ class _MechanicMyRequestsPageState extends State<MechanicMyRequestsPage>
       final supabase = Supabase.instance.client;
       final authService = Provider.of<AuthService>(context, listen: false);
       
+      print('🔄 Starting status update for request ${request.id}');
+      print('Current status: ${request.status}');
+      print('New status: $newStatus');
+      print('Current accepted_mechanic_id: ${request.acceptedMechanicId}');
+      
       final updates = {
-        'status': newStatus,
+        'status': newStatus, // Values: pending, in_progress, completed, rejected
         'updated_at': DateTime.now().toIso8601String(),
       };
 
       // If starting work or completing, set the accepted mechanic
       if (newStatus == 'in_progress' || newStatus == 'completed') {
         updates['accepted_mechanic_id'] = authService.currentUser!.id;
+        print('Setting accepted_mechanic_id to: ${authService.currentUser!.id}');
       }
 
-      await supabase
+      print('🔄 Updating request ${request.id} with: $updates');
+      
+      // Execute the update
+      final result = await supabase
           .from('service_requests')
           .update(updates)
           .eq('id', request.id);
+
+      print('✅ Update result: $result');
+
+      // Verify the update by fetching the updated record
+      final updatedRecord = await supabase
+          .from('service_requests')
+          .select('*')
+          .eq('id', request.id)
+          .single();
+      
+      print('✅ Verified update - New status: ${updatedRecord['status']}');
+      print('✅ Verified update - New accepted_mechanic_id: ${updatedRecord['accepted_mechanic_id']}');
 
       // Create notification for user when service is completed
       if (newStatus == 'completed') {
@@ -162,9 +193,11 @@ class _MechanicMyRequestsPageState extends State<MechanicMyRequestsPage>
         }
       }
 
+      if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Request status updated to $newStatus'),
+          content: Text('Request status updated to ${newStatus.toUpperCase().replaceAll('_', ' ')}'),
           backgroundColor: AppTheme.successColor,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -173,8 +206,11 @@ class _MechanicMyRequestsPageState extends State<MechanicMyRequestsPage>
         ),
       );
 
-      _loadMyRequests(); // Refresh the list
+      // Force reload the list to ensure fresh data
+      await _loadMyRequests();
     } catch (e) {
+      print('Error updating request status: $e');
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to update request status: $e'),
@@ -825,12 +861,29 @@ class _MechanicMyRequestsPageState extends State<MechanicMyRequestsPage>
   }
 
   Widget _buildActionButtons(BuildContext context, ServiceRequest request) {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final isMyRequest = request.acceptedMechanicId == authService.currentUser!.id;
+    final isAssignedToMe = request.mechanicIds.contains(authService.currentUser!.id);
+
+    print('🔍 Action buttons for request ${request.id}:');
+    print('   Status: ${request.status}');
+    print('   Accepted mechanic: ${request.acceptedMechanicId}');
+    print('   My ID: ${authService.currentUser!.id}');
+    print('   Is my request: $isMyRequest');
+    print('   Is assigned to me: $isAssignedToMe');
+
     return Row(
       children: [
-        if (request.status == 'pending') ...[
+        // Show "Start Work" for pending requests assigned to this mechanic
+        if (request.status == 'pending' && isAssignedToMe) ...[
           Expanded(
             child: ElevatedButton.icon(
-              onPressed: () => _updateRequestStatus(request, 'in_progress'),
+              onPressed: () async {
+                print('🚀 Start Work clicked for request: ${request.id}');
+                print('   Current status: ${request.status}');
+                print('   Current accepted_mechanic_id: ${request.acceptedMechanicId}');
+                await _updateRequestStatus(request, 'in_progress');
+              },
               icon: const Icon(Icons.play_arrow, size: 18),
               label: const Text('Start Work'),
               style: ElevatedButton.styleFrom(
@@ -844,7 +897,7 @@ class _MechanicMyRequestsPageState extends State<MechanicMyRequestsPage>
           ),
           const SizedBox(width: 12),
         ],
-        if (request.status == 'in_progress') ...[
+        if (request.status == 'in_progress' && isMyRequest) ...[
           Expanded(
             child: ElevatedButton.icon(
               onPressed: () => _showCompleteServiceDialog(context, request),
@@ -861,6 +914,33 @@ class _MechanicMyRequestsPageState extends State<MechanicMyRequestsPage>
           ),
           const SizedBox(width: 12),
         ],
+        if (request.status == 'completed') ...[
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                color: AppTheme.successColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppTheme.successColor),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  Icon(Icons.check_circle, color: AppTheme.successColor, size: 18),
+                  SizedBox(width: 8),
+                  Text(
+                    'Completed',
+                    style: TextStyle(
+                      color: AppTheme.successColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+        ],
         Expanded(
           child: OutlinedButton.icon(
             onPressed: () => _showRequestDetails(context, request),
@@ -868,7 +948,7 @@ class _MechanicMyRequestsPageState extends State<MechanicMyRequestsPage>
             label: const Text('Details'),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppTheme.primaryColor,
-              side: BorderSide(color: AppTheme.primaryColor),
+              side: const BorderSide(color: AppTheme.primaryColor),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),

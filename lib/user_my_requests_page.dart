@@ -84,6 +84,10 @@ class _UserMyRequestsPageState extends State<UserMyRequestsPage>
 
   List<ServiceRequest> get _filteredRequests {
     if (_selectedFilter == 'all') return _myRequests;
+    // For 'accepted' filter, show 'in_progress' status
+    if (_selectedFilter == 'accepted') {
+      return _myRequests.where((request) => request.status == 'in_progress').toList();
+    }
     return _myRequests.where((request) => request.status == _selectedFilter).toList();
   }
 
@@ -205,7 +209,8 @@ class _UserMyRequestsPageState extends State<UserMyRequestsPage>
 
   Widget _buildStatsSection(BuildContext context) {
     final pendingCount = _myRequests.where((r) => r.status == 'pending').length;
-    final acceptedCount = _myRequests.where((r) => r.status == 'accepted').length;
+    // Count 'in_progress' as accepted
+    final acceptedCount = _myRequests.where((r) => r.status == 'in_progress').length;
     final completedCount = _myRequests.where((r) => r.status == 'completed').length;
     final totalCount = _myRequests.length;
 
@@ -330,7 +335,7 @@ class _UserMyRequestsPageState extends State<UserMyRequestsPage>
     final filters = [
       {'key': 'all', 'label': 'All', 'color': AppTheme.primaryColor},
       {'key': 'pending', 'label': 'Pending', 'color': AppTheme.warningColor},
-      {'key': 'accepted', 'label': 'Accepted', 'color': AppTheme.secondaryColor},
+      {'key': 'accepted', 'label': 'In Progress', 'color': AppTheme.secondaryColor},
       {'key': 'completed', 'label': 'Completed', 'color': AppTheme.successColor},
     ];
 
@@ -609,7 +614,7 @@ class _UserMyRequestsPageState extends State<UserMyRequestsPage>
               ),
             ],
           ),
-          if (request.status == 'accepted' || request.status == 'completed') ...[
+          if (request.status == 'in_progress' || request.status == 'completed') ...[
             const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(12),
@@ -628,11 +633,15 @@ class _UserMyRequestsPageState extends State<UserMyRequestsPage>
                     size: 16,
                   ),
                   const SizedBox(width: 8),
-                  Text(
-                    'Mechanic assigned: ${request.acceptedMechanicId.isNotEmpty ? "Mechanic ID ${request.acceptedMechanicId}" : "Pending assignment"}',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppTheme.primaryColor,
-                      fontWeight: FontWeight.w500,
+                  Expanded(
+                    child: Text(
+                      request.status == 'in_progress' 
+                          ? '🔧 Mechanic is working on your vehicle'
+                          : 'Mechanic assigned: ${request.acceptedMechanicId.isNotEmpty ? "Mechanic ID ${request.acceptedMechanicId}" : "Pending assignment"}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppTheme.primaryColor,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ],
@@ -651,6 +660,7 @@ class _UserMyRequestsPageState extends State<UserMyRequestsPage>
       case 'pending':
         return AppTheme.warningColor;
       case 'accepted':
+      case 'in_progress':
         return AppTheme.primaryColor;
       case 'rejected':
         return AppTheme.errorColor;
@@ -667,6 +677,8 @@ class _UserMyRequestsPageState extends State<UserMyRequestsPage>
         return Icons.pending_actions;
       case 'accepted':
         return Icons.thumb_up;
+      case 'in_progress':
+        return Icons.build;
       case 'rejected':
         return Icons.cancel;
       default:

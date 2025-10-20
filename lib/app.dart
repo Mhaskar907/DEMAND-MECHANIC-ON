@@ -16,59 +16,73 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> {
-  bool _checkingProfile = true;
+  String? _lastCheckedUserId;
+  bool _checkingProfile = false;
   bool _userHasProfile = false;
   bool _mechanicHasProfile = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _checkProfiles();
-  }
+  Future<void> _checkProfiles(String userId, String role) async {
+    // Avoid re-checking if we already checked for this user
+    if (_lastCheckedUserId == userId && !_checkingProfile) {
+      print('✅ Profile already checked for user: $userId');
+      return;
+    }
 
-  Future<void> _checkProfiles() async {
-    final authService = Provider.of<AuthService>(context, listen: false);
-    
-    if (authService.currentUser != null) {
-      try {
-        final role = authService.currentUserRole;
-        
-        if (role == 'user') {
-          final profile = await Supabase.instance.client
-              .from('user_profiles')
-              .select()
-              .eq('user_id', authService.currentUser!.id)
-              .maybeSingle();
+    setState(() {
+      _checkingProfile = true;
+    });
 
+    try {
+      print('🔍 Checking profile for user: $userId, role: $role');
+      
+      if (role == 'user') {
+        final profile = await Supabase.instance.client
+            .from('user_profiles')
+            .select()
+            .eq('user_id', userId)
+            .maybeSingle();
+
+        print('📋 User profile result: ${profile != null ? "Found" : "Not found"}');
+
+        if (mounted) {
           setState(() {
             _userHasProfile = profile != null;
+            _mechanicHasProfile = false;
+            _lastCheckedUserId = userId;
             _checkingProfile = false;
           });
-        } else if (role == 'mechanic') {
-          final profile = await Supabase.instance.client
-              .from('mechanic_profiles')
-              .select()
-              .eq('user_id', authService.currentUser!.id)
-              .maybeSingle();
+        }
+      } else if (role == 'mechanic') {
+        final profile = await Supabase.instance.client
+            .from('mechanic_profiles')
+            .select()
+            .eq('user_id', userId)
+            .maybeSingle();
 
+        print('📋 Mechanic profile result: ${profile != null ? "Found" : "Not found"}');
+
+        if (mounted) {
           setState(() {
             _mechanicHasProfile = profile != null;
+            _userHasProfile = false;
+            _lastCheckedUserId = userId;
             _checkingProfile = false;
           });
-        } else {
+        }
+      } else {
+        if (mounted) {
           setState(() {
             _checkingProfile = false;
           });
         }
-      } catch (e) {
+      }
+    } catch (e) {
+      print('❌ Error checking profile: $e');
+      if (mounted) {
         setState(() {
           _checkingProfile = false;
         });
       }
-    } else {
-      setState(() {
-        _checkingProfile = false;
-      });
     }
   }
 
@@ -76,34 +90,64 @@ class _AppState extends State<App> {
   Widget build(BuildContext context) {
     return Consumer<AuthService>(
       builder: (context, authService, child) {
-        if (authService.isLoading || _checkingProfile) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
-        
+        // If user logged out, reset state
         if (authService.currentUser == null) {
+          if (_lastCheckedUserId != null) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                setState(() {
+                  _lastCheckedUserId = null;
+                  _userHasProfile = false;
+                  _mechanicHasProfile = false;
+                  _checkingProfile = false;
+                });
+              }
+            });
+          }
           return const RoleSelectionPage();
         }
-        
-        // User is logged in, check their role and redirect accordingly
+
+        // User is logged in, check their profile
+        final userId = authService.currentUser!.id;
         final role = authService.currentUserRole;
+
+        // Trigger profile check if needed
+        if (role != null && _lastCheckedUserId != userId && !_checkingProfile) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _checkProfiles(userId, role);
+          });
+        }
+
+        // Show loading while checking profile
+        if (authService.isLoading || _checkingProfile) {
+          return const Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Loading your profile...'),
+                ],
+              ),
+            ),
+          );
+        }
+
+        // Route based on role and profile status
         if (role == 'user') {
-          // For users, check if they have a profile
           if (_userHasProfile) {
             return const UserHomePage();
           } else {
-            return UserProfileForm(isFirstTime: true);
+            return const UserProfileForm(isFirstTime: true);
           }
         } else if (role == 'mechanic') {
-          // For mechanics, check if they have a profile
           if (_mechanicHasProfile) {
             return const MechanicHomePage();
           } else {
-            return MechanicProfileForm(isFirstTime: true);
+            return const MechanicProfileForm(isFirstTime: true);
           }
         } else {
-          // If role is not set, go to role selection
           return const RoleSelectionPage();
         }
       },

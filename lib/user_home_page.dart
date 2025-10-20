@@ -9,6 +9,9 @@ import 'user_my_requests_page.dart';
 import 'user_ratings_page.dart';
 import 'theme/app_theme.dart';
 import 'user_chatbot_page.dart';
+import 'utils/dimensions.dart';
+import 'debug_test_page.dart';
+import 'live_location_map_page.dart';
 
 class UserHomePage extends StatefulWidget {
   const UserHomePage({super.key});
@@ -59,9 +62,10 @@ class _UserHomePageState extends State<UserHomePage>
   @override
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context);
+    final dim = Dimensions(context);
 
     return Scaffold(
-      floatingActionButton: _buildChatFab(context),
+      floatingActionButton: _buildChatFab(context, dim),
       body: Container(
         decoration: const BoxDecoration(
           gradient: AppTheme.backgroundGradient,
@@ -74,22 +78,22 @@ class _UserHomePageState extends State<UserHomePage>
               child: CustomScrollView(
                 slivers: [
                   // Custom App Bar
-                  _buildSliverAppBar(context, authService),
+                  _buildSliverAppBar(context, authService, dim),
                   // Content
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.all(24.0),
+                      padding: EdgeInsets.all(dim.width24),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // Welcome Section
-                          _buildWelcomeSection(context, authService),
-                          const SizedBox(height: 32),
+                          _buildWelcomeSection(context, authService, dim),
+                          SizedBox(height: dim.height32),
                           // Quick Actions
-                          _buildQuickActions(context),
-                          const SizedBox(height: 32),
+                          _buildQuickActions(context, dim),
+                          SizedBox(height: dim.height32),
                           // Dashboard Cards
-                          _buildDashboardGrid(context),
+                          _buildDashboardGrid(context, dim),
                         ],
                       ),
                     ),
@@ -103,7 +107,7 @@ class _UserHomePageState extends State<UserHomePage>
     );
   }
 
-  Widget _buildChatFab(BuildContext context) {
+  Widget _buildChatFab(BuildContext context, Dimensions dim) {
     return FloatingActionButton.extended(
       onPressed: () {
         Navigator.push(
@@ -113,16 +117,16 @@ class _UserHomePageState extends State<UserHomePage>
           ),
         );
       },
-      icon: const Icon(Icons.chat_bubble_outline),
-      label: const Text('Quick Help'),
+      icon: Icon(Icons.chat_bubble_outline, size: dim.iconSize24),
+      label: Text('Quick Help', style: TextStyle(fontSize: dim.font16)),
       backgroundColor: AppTheme.primaryColor,
       foregroundColor: Colors.white,
     );
   }
 
-  Widget _buildSliverAppBar(BuildContext context, AuthService authService) {
+  Widget _buildSliverAppBar(BuildContext context, AuthService authService, Dimensions dim) {
     return SliverAppBar(
-      expandedHeight: 120,
+      expandedHeight: dim.height120,
       floating: false,
       pinned: true,
       backgroundColor: Colors.transparent,
@@ -131,14 +135,14 @@ class _UserHomePageState extends State<UserHomePage>
         background: Container(
           decoration: BoxDecoration(
             gradient: AppTheme.primaryGradient,
-            borderRadius: const BorderRadius.only(
-              bottomLeft: Radius.circular(30),
-              bottomRight: Radius.circular(30),
+            borderRadius: BorderRadius.only(
+              bottomLeft: Radius.circular(dim.radius30),
+              bottomRight: Radius.circular(dim.radius30),
             ),
           ),
           child: SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              padding: EdgeInsets.symmetric(horizontal: dim.width24, vertical: dim.height16),
               child: Row(
                 children: [
                   Expanded(
@@ -148,18 +152,18 @@ class _UserHomePageState extends State<UserHomePage>
                       children: [
                         Text(
                           'Good ${_getGreeting()}!',
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Colors.white,
-                            fontSize: 16,
+                            fontSize: dim.font16,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        SizedBox(height: dim.height5),
                         Text(
                           'Ready to find help?',
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Colors.white,
-                            fontSize: 24,
+                            fontSize: dim.font20,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -169,16 +173,25 @@ class _UserHomePageState extends State<UserHomePage>
                   Row(
                     children: [
                       _buildActionButton(
+                        dim,
+                        Icons.bug_report,
+                        () => _navigateToDebugTest(context),
+                      ),
+                      SizedBox(width: dim.width12),
+                      _buildActionButton(
+                        dim,
                         Icons.notifications_outlined,
                         () => _navigateToNotifications(context),
                       ),
-                      const SizedBox(width: 12),
+                      SizedBox(width: dim.width12),
                       _buildActionButton(
+                        dim,
                         Icons.person_outline,
                         () => _navigateToProfile(context),
                       ),
-                      const SizedBox(width: 12),
+                      SizedBox(width: dim.width12),
                       _buildActionButton(
+                        dim,
                         Icons.logout,
                         () => _showLogoutDialog(context, authService),
                       ),
@@ -193,31 +206,31 @@ class _UserHomePageState extends State<UserHomePage>
     );
   }
 
-  Widget _buildActionButton(IconData icon, VoidCallback onTap) {
+  Widget _buildActionButton(Dimensions dim, IconData icon, VoidCallback onTap) {
     return Container(
-      width: 44,
-      height: 44,
+      width: dim.height45,
+      height: dim.height45,
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(dim.radius12),
       ),
       child: IconButton(
         onPressed: onTap,
         icon: Icon(
           icon,
           color: Colors.white,
-          size: 20,
+          size: dim.iconSize24,
         ),
       ),
     );
   }
 
-  Widget _buildWelcomeSection(BuildContext context, AuthService authService) {
+  Widget _buildWelcomeSection(BuildContext context, AuthService authService, Dimensions dim) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(dim.width24),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(dim.radius20),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -229,19 +242,19 @@ class _UserHomePageState extends State<UserHomePage>
       child: Row(
         children: [
           Container(
-            width: 60,
-            height: 60,
+            width: dim.height60,
+            height: dim.height60,
             decoration: BoxDecoration(
               gradient: AppTheme.primaryGradient,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(dim.radius16),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.person,
               color: Colors.white,
-              size: 30,
+              size: dim.iconSize24 + dim.height10,
             ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: dim.width16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -251,13 +264,15 @@ class _UserHomePageState extends State<UserHomePage>
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: const Color.fromARGB(255, 11, 11, 11),
+                    fontSize: dim.font20,
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: dim.height5),
                 Text(
                   authService.currentUser?.email ?? 'User',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: const Color.fromARGB(255, 24, 24, 24),
+                    fontSize: dim.font16,
                   ),
                 ),
               ],
@@ -268,7 +283,7 @@ class _UserHomePageState extends State<UserHomePage>
     );
   }
 
-  Widget _buildQuickActions(BuildContext context) {
+  Widget _buildQuickActions(BuildContext context, Dimensions dim) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -277,29 +292,55 @@ class _UserHomePageState extends State<UserHomePage>
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
             fontWeight: FontWeight.bold,
             color: AppTheme.textPrimary,
+            fontSize: dim.font22,
           ),
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: dim.height16),
         Row(
           children: [
             Expanded(
               child: _buildQuickActionCard(
                 context,
+                dim,
                 'Find Mechanics',
                 Icons.search,
                 AppTheme.primaryGradient,
                 () => _navigateToFindMechanics(context),
               ),
             ),
-            const SizedBox(width: 16),
+            SizedBox(width: dim.width16),
             Expanded(
               child: _buildQuickActionCard(
                 context,
+                dim,
+                'Live Map',
+                Icons.map,
+                const LinearGradient(
+                  colors: [Colors.green, Colors.blue],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                () => _navigateToLiveMap(context),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: dim.height16),
+        Row(
+          children: [
+            Expanded(
+              child: _buildQuickActionCard(
+                context,
+                dim,
                 'Emergency',
                 Icons.emergency,
                 AppTheme.primaryGradient,
                 () => _showEmergencyDialog(context),
               ),
+            ),
+            SizedBox(width: dim.width16),
+            Expanded(
+              child: Container(), // Empty space for symmetry
             ),
           ],
         ),
@@ -309,16 +350,17 @@ class _UserHomePageState extends State<UserHomePage>
 
   Widget _buildQuickActionCard(
     BuildContext context,
+    Dimensions dim,
     String title,
     IconData icon,
     LinearGradient gradient,
     VoidCallback onTap,
   ) {
     return Container(
-      height: 100,
+      height: dim.height100,
       decoration: BoxDecoration(
         gradient: gradient,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(dim.radius16),
         boxShadow: [
           BoxShadow(
             color: gradient.colors.first.withOpacity(0.3),
@@ -331,23 +373,23 @@ class _UserHomePageState extends State<UserHomePage>
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(dim.radius16),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(dim.width16),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
                   icon,
                   color: Colors.white,
-                  size: 28,
+                  size: dim.iconSize24 + dim.height5,
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: dim.height8),
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white,
-                    fontSize: 14,
+                    fontSize: dim.font14,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -359,7 +401,7 @@ class _UserHomePageState extends State<UserHomePage>
     );
   }
 
-  Widget _buildDashboardGrid(BuildContext context) {
+  Widget _buildDashboardGrid(BuildContext context, Dimensions dim) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -368,19 +410,21 @@ class _UserHomePageState extends State<UserHomePage>
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
             fontWeight: FontWeight.bold,
             color: AppTheme.textPrimary,
+            fontSize: dim.font22,
           ),
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: dim.height16),
         GridView.count(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           crossAxisCount: 2,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
+          crossAxisSpacing: dim.width16,
+          mainAxisSpacing: dim.height16,
           childAspectRatio: 1.2,
           children: [
             _buildDashboardCard(
               context,
+              dim,
               Icons.history,
               'Service History',
               'View past services',
@@ -390,6 +434,7 @@ class _UserHomePageState extends State<UserHomePage>
             ),
             _buildDashboardCard(
               context,
+              dim,
               Icons.request_page,
               'My Requests',
               'Track your requests',
@@ -399,6 +444,7 @@ class _UserHomePageState extends State<UserHomePage>
             ),
             _buildDashboardCard(
               context,
+              dim,
               Icons.star,
               'Ratings',
               'Rate mechanics',
@@ -408,6 +454,7 @@ class _UserHomePageState extends State<UserHomePage>
             ),
             _buildDashboardCard(
               context,
+              dim,
               Icons.person,
               'My Profile',
               'View and edit profile',
@@ -423,6 +470,7 @@ class _UserHomePageState extends State<UserHomePage>
 
   Widget _buildDashboardCard(
     BuildContext context,
+    Dimensions dim,
     IconData icon,
     String title,
     String subtitle,
@@ -433,7 +481,7 @@ class _UserHomePageState extends State<UserHomePage>
     return Container(
       decoration: BoxDecoration(
         gradient: AppTheme.primaryGradient,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(dim.radius16),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -446,23 +494,23 @@ class _UserHomePageState extends State<UserHomePage>
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(dim.radius16),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(dim.width16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  width: 40,
-                  height: 40,
+                  width: dim.height40,
+                  height: dim.height40,
                   decoration: BoxDecoration(
                     color: color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(dim.radius10),
                   ),
                   child: Icon(
                     cardIcon,
                     color: color,
-                    size: 20,
+                    size: dim.iconSize24,
                   ),
                 ),
                 const Spacer(),
@@ -471,13 +519,15 @@ class _UserHomePageState extends State<UserHomePage>
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: AppTheme.textPrimary,
+                    fontSize: dim.font16,
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: dim.height5),
                 Text(
                   subtitle,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: AppTheme.textSecondary,
+                    fontSize: dim.font12,
                   ),
                 ),
               ],
@@ -495,6 +545,15 @@ class _UserHomePageState extends State<UserHomePage>
     return 'Evening';
   }
 
+  void _navigateToDebugTest(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const DebugTestPage(),
+      ),
+    );
+  }
+
   void _navigateToNotifications(BuildContext context) {
     Navigator.push(
       context,
@@ -509,6 +568,15 @@ class _UserHomePageState extends State<UserHomePage>
       context,
       MaterialPageRoute(
         builder: (context) => const UserProfileForm(isFirstTime: false),
+      ),
+    );
+  }
+
+  void _navigateToLiveMap(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const LiveLocationMapPage(),
       ),
     );
   }
@@ -561,9 +629,13 @@ class _UserHomePageState extends State<UserHomePage>
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              authService.signOut();
+            onPressed: () async {
+              Navigator.pop(context); // Close dialog
+              await authService.signOut();
+              // Navigate to login and clear all routes
+              if (context.mounted) {
+                Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+              }
             },
             child: const Text('Sign Out'),
           ),

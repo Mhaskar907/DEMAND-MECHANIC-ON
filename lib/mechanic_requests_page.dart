@@ -28,7 +28,9 @@ class _MechanicRequestsPageState extends State<MechanicRequestsPage> {
     try {
       final requests = await _requestService.getMechanicRequests(authService.currentUser!.id);
       setState(() {
-        _requests = requests; // This should work now
+        // Only show pending requests in the requests panel
+        // Accepted/In-progress requests should be in "My Requests" page
+        _requests = requests.where((r) => r.status == 'pending').toList();
         _isLoading = false;
       });
     } catch (e) {
@@ -39,28 +41,58 @@ class _MechanicRequestsPageState extends State<MechanicRequestsPage> {
 
   Future<void> _acceptRequest(ServiceRequest request) async {
     try {
+      print('🚀 Starting to accept request: ${request.id}');
+      
+      final authService = Provider.of<AuthService>(context, listen: false);
+      final mechanicId = authService.currentUser!.id;
+      
+      print('👨‍🔧 Mechanic ID: $mechanicId');
+      print('📋 Current request status: ${request.status}');
+      print('📋 Current accepted_mechanic_id: ${request.acceptedMechanicId}');
+      
+      // When mechanic accepts, set to 'in_progress' and assign the mechanic
       await _requestService.updateRequestStatus(
         request.id, 
-        'accepted',
-        acceptedMechanicId: Provider.of<AuthService>(context, listen: false).currentUser!.id,
+        'in_progress',
+        acceptedMechanicId: mechanicId,
       );
+
+      print('✅ Request status updated successfully');
 
       // Notify user
       await _requestService.createNotification(
         userId: request.userId,
-        title: 'Request Accepted',
-        message: 'Your service request has been accepted by a mechanic',
+        title: 'Request Accepted - Work in Progress',
+        message: 'Your service request has been accepted and the mechanic is on their way!',
         type: 'acceptance',
         relatedRequestId: request.id,
       );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Request accepted! User has been notified.')),
-      );
+      print('✅ Notification sent to user');
 
-      _loadRequests(); // Refresh list
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Request accepted! Work started. User has been notified.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+
+      // Refresh list to remove the accepted request
+      await _loadRequests();
+      
+      print('✅ Request list refreshed');
     } catch (e) {
-      print('Error accepting request: $e');
+      print('❌ Error accepting request: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error accepting request: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -114,11 +146,11 @@ class _MechanicRequestsPageState extends State<MechanicRequestsPage> {
                   ),
                 ],
               )
-            else
+            else if (request.status != 'pending')
               Text(
-                'Status: ${request.status}',
+                'Status: ${request.status.toUpperCase().replaceAll('_', ' ')}',
                 style: TextStyle(
-                  color: request.status == 'accepted' ? Colors.green : Colors.red,
+                  color: request.status == 'in_progress' ? Colors.orange : Colors.red,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -133,6 +165,25 @@ class _MechanicRequestsPageState extends State<MechanicRequestsPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Service Requests'),
+        actions: [
+          // Debug button to test database update
+          if (_requests.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.bug_report),
+              onPressed: () async {
+                try {
+                  await _requestService.testUpdateRequestStatus(_requests.first.id);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Test completed - check console logs')),
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Test failed: $e')),
+                  );
+                }
+              },
+            ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

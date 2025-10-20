@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 import 'auth_service.dart';
 import 'models/mechanic_list_item.dart';
 import 'services/request_service.dart';
@@ -16,15 +18,19 @@ class RequestFormPage extends StatefulWidget {
 
 class _RequestFormPageState extends State<RequestFormPage> {
   final _formKey = GlobalKey<FormState>();
+  final _userNameController = TextEditingController();
+  final _userPhoneController = TextEditingController();
   final _locationController = TextEditingController();
   final _addressController = TextEditingController();
   final _issueController = TextEditingController();
   final _vehicleTypeController = TextEditingController();
   final _vehicleModelController = TextEditingController();
   bool _isLoading = false;
+  bool _isGettingLocation = false;
   String? _errorMessage;
+  Position? _currentPosition;
 
-    final SupabaseClient _supabase = Supabase.instance.client;
+  final SupabaseClient _supabase = Supabase.instance.client;
 
   @override
   void initState() {
@@ -33,9 +39,80 @@ class _RequestFormPageState extends State<RequestFormPage> {
   }
 
   Future<void> _getUserLocation() async {
-    // You can integrate with geolocation services here
-    // For now, we'll use a placeholder
-    _locationController.text = 'Current Location (approximate)';
+    setState(() {
+      _isGettingLocation = true;
+    });
+
+    try {
+      // Check if location services are enabled
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        _showLocationError('Location services are disabled. Please enable them in settings.');
+        return;
+      }
+
+      // Check location permissions
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          _showLocationError('Location permissions are denied. Please enable them in settings.');
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        _showLocationError('Location permissions are permanently denied. Please enable them in settings.');
+        return;
+      }
+
+      // Get current position
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      _currentPosition = position;
+
+      // Get address from coordinates
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+
+      if (placemarks.isNotEmpty) {
+        Placemark place = placemarks[0];
+        String address = '${place.street}, ${place.locality}, ${place.administrativeArea}';
+        _locationController.text = address;
+        _addressController.text = address;
+      } else {
+        _locationController.text = 'Lat: ${position.latitude.toStringAsFixed(4)}, Lng: ${position.longitude.toStringAsFixed(4)}';
+      }
+
+    } catch (e) {
+      _showLocationError('Failed to get location: $e');
+    } finally {
+      setState(() {
+        _isGettingLocation = false;
+      });
+    }
+  }
+
+  void _showLocationError(String message) {
+    setState(() {
+      _locationController.text = 'Location not available - Please enter manually';
+    });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.orange,
+        action: SnackBarAction(
+          label: 'Retry',
+          textColor: Colors.white,
+          onPressed: _getUserLocation,
+        ),
+      ),
+    );
   }
 
   @override
@@ -73,20 +150,83 @@ class _RequestFormPageState extends State<RequestFormPage> {
                   ],
                 ),
 
-              // Location
+              // User Name
               TextFormField(
-                controller: _locationController,
+                controller: _userNameController,
                 decoration: const InputDecoration(
-                  labelText: 'Your Location',
+                  labelText: 'Your Name',
                   border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.location_on),
+                  prefixIcon: Icon(Icons.person),
+                  hintText: 'Enter your full name',
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter your location';
+                    return 'Please enter your name';
                   }
                   return null;
                 },
+              ),
+              const SizedBox(height: 16),
+
+              // User Phone
+              TextFormField(
+                controller: _userPhoneController,
+                decoration: const InputDecoration(
+                  labelText: 'Your Phone Number',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.phone),
+                  hintText: 'Enter your phone number',
+                ),
+                keyboardType: TextInputType.phone,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your phone number';
+                  }
+                  if (value.length < 10) {
+                    return 'Please enter a valid phone number';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+
+              // Location with auto-detect
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _locationController,
+                      decoration: const InputDecoration(
+                        labelText: 'Your Location',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.location_on),
+                        hintText: 'Auto-detected or enter manually',
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your location';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton.icon(
+                    onPressed: _isGettingLocation ? null : _getUserLocation,
+                    icon: _isGettingLocation 
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.my_location),
+                    label: Text(_isGettingLocation ? 'Getting...' : 'Detect'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
 
@@ -194,18 +334,18 @@ class _RequestFormPageState extends State<RequestFormPage> {
         final requestService = RequestService();
         final authService = Provider.of<AuthService>(context, listen: false);
 
-        // Get user profile for contact info
-        final userProfile = await _supabase
-            .from('user_profiles')
-            .select()
-            .eq('user_id', authService.currentUser!.id)
-            .single();
+        // Use user input instead of profile data
+        final userName = _userNameController.text.trim();
+        final userPhone = _userPhoneController.text.trim();
+
+        print('👤 Using user name: $userName');
+        print('📞 Using user phone: $userPhone');
 
         // Create request
         final requestId = await requestService.createServiceRequest(
           userId: authService.currentUser!.id,
-          userName: userProfile['name'] ?? 'User',
-          userPhone: userProfile['phone_number'] ?? 'Not provided',
+          userName: userName,
+          userPhone: userPhone,
           userLocation: _locationController.text,
           userAddress: _addressController.text,
           issueDescription: _issueController.text,
@@ -219,7 +359,7 @@ class _RequestFormPageState extends State<RequestFormPage> {
           await requestService.createNotification(
             userId: mechanic.userId,
             title: 'New Service Request',
-            message: 'You have a new service request from ${userProfile['name']}',
+            message: 'You have a new service request from $userName',
             type: 'request',
             relatedRequestId: requestId,
           );
@@ -246,6 +386,8 @@ class _RequestFormPageState extends State<RequestFormPage> {
 
   @override
   void dispose() {
+    _userNameController.dispose();
+    _userPhoneController.dispose();
     _locationController.dispose();
     _addressController.dispose();
     _issueController.dispose();

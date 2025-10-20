@@ -9,7 +9,7 @@ class ServiceRequest {
   final String vehicleType;
   final String vehicleModel;
   final List<String> mechanicIds;
-  final String status; // pending, accepted, rejected, completed
+  final String status; // pending, in_progress, completed, rejected
   final String acceptedMechanicId;
   final DateTime createdAt;
   final DateTime updatedAt;

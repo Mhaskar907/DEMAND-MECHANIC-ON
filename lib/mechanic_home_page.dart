@@ -7,7 +7,7 @@ import 'mechanic_ratings_page.dart';
 import 'mechanic_earnings_page.dart';
 import 'mechanic_service_history_page.dart';
 import 'mechanic_my_requests_page.dart';
-
+import 'mechanic_location_sharing_page.dart';
 import 'mechanic_find_users_page.dart';
 import 'theme/app_theme.dart';
 
@@ -390,11 +390,33 @@ class _MechanicHomePageState extends State<MechanicHomePage>
             Expanded(
               child: _buildQuickActionCard(
                 context,
+                'Share Location',
+                Icons.my_location,
+                const LinearGradient(
+                  colors: [Colors.green, Colors.teal],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                () => _navigateToLocationSharing(context),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: _buildQuickActionCard(
+                context,
                 'Find Customers',
                 Icons.people,
                 AppTheme.secondaryGradient,
                 () => _navigateToFindUsers(context),
               ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Container(), // Empty space for symmetry
             ),
           ],
         ),
@@ -653,6 +675,15 @@ class _MechanicHomePageState extends State<MechanicHomePage>
     );
   }
 
+  void _navigateToLocationSharing(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const MechanicLocationSharingPage(),
+      ),
+    );
+  }
+
   void _showLogoutDialog(BuildContext context, AuthService authService) {
     showDialog(
       context: context,
@@ -665,9 +696,13 @@ class _MechanicHomePageState extends State<MechanicHomePage>
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              authService.signOut();
+            onPressed: () async {
+              Navigator.pop(context); // Close dialog
+              await authService.signOut();
+              // Navigate to login and clear all routes
+              if (context.mounted) {
+                Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+              }
             },
             child: const Text('Sign Out'),
           ),

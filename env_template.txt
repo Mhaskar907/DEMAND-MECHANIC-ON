@@ -1,0 +1,7 @@
+# Supabase Configuration
+SUPABASE_URL=YOUR_SUPABASE_URL_HERE
+SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY_HERE
+
+# Google OAuth Configuration  
+GOOGLE_WEB_CLIENT_ID=129075083921-nqmvtkhv2dp07s4hh220n39dpfk4vggc.apps.googleusercontent.com
+GOOGLE_ANDROID_CLIENT_ID=129075083921-7bngl4l0ebht9ucnau5kbbcv05eiqe6r.apps.googleusercontent.com

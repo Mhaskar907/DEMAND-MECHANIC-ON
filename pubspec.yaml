@@ -33,7 +33,11 @@ dependencies:
   supabase_flutter: ^2.0.0
   flutter_dotenv: ^6.0.0
   provider: ^6.0.5
-  google_sign_in: ^6.1.0   # <-- add this line
+  google_sign_in: ^6.1.0
+  geolocator: ^10.1.0
+  geocoding: ^2.1.1
+  google_maps_flutter: ^2.5.0
+  http: ^1.1.0
 
 
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'login_page.dart';
 import 'signup_page.dart';
 import 'theme/app_theme.dart';
+import 'utils/dimensions.dart';
 
 class RoleSelectionPage extends StatefulWidget {
   const RoleSelectionPage({super.key});
@@ -51,6 +52,8 @@ class _RoleSelectionPageState extends State<RoleSelectionPage>
 
   @override
   Widget build(BuildContext context) {
+    final dim = Dimensions(context);
+    
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -58,7 +61,7 @@ class _RoleSelectionPageState extends State<RoleSelectionPage>
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.all(24.0),
+            padding: EdgeInsets.all(dim.width20),
             child: Column(
               children: [
                 const Spacer(flex: 2),
@@ -70,11 +73,11 @@ class _RoleSelectionPageState extends State<RoleSelectionPage>
                     child: Column(
                       children: [
                         Container(
-                          width: 120,
-                          height: 120,
+                          width: dim.height45 * 2.5,
+                          height: dim.height45 * 2.5,
                           decoration: BoxDecoration(
                             gradient: AppTheme.primaryGradient,
-                            borderRadius: BorderRadius.circular(30),
+                            borderRadius: BorderRadius.circular(dim.radius30),
                             boxShadow: [
                               BoxShadow(
                                 color: AppTheme.primaryColor.withOpacity(0.3),
@@ -83,27 +86,29 @@ class _RoleSelectionPageState extends State<RoleSelectionPage>
                               ),
                             ],
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.build_circle,
-                            size: 60,
+                            size: dim.height45 + dim.height15,
                             color: Colors.white,
                           ),
                         ),
-                        const SizedBox(height: 32),
+                        SizedBox(height: dim.height30),
                         Text(
                           'MechanicConnect',
                           style: Theme.of(context).textTheme.displayMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: AppTheme.textPrimary,
+                            fontSize: dim.font26 * 1.2,
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: dim.height15),
                         Text(
                           'Connect with trusted mechanics\nor start your service business',
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                             color: AppTheme.textSecondary,
                             height: 1.5,
+                            fontSize: dim.font16,
                           ),
                         ),
                       ],
@@ -120,15 +125,17 @@ class _RoleSelectionPageState extends State<RoleSelectionPage>
                       children: [
                         _buildRoleCard(
                           context,
+                          dim,
                           icon: Icons.person,
                           title: 'I Need Service',
                           subtitle: 'Find trusted mechanics\nfor your vehicle',
                           gradient: AppTheme.primaryGradient,
                           onTap: () => _navigateToLogin('user'),
                         ),
-                        const SizedBox(height: 20),
+                        SizedBox(height: dim.height20),
                         _buildRoleCard(
                           context,
+                          dim,
                           icon: Icons.build,
                           title: 'I Provide Service',
                           subtitle: 'Start earning by helping\nothers with their vehicles',
@@ -149,15 +156,16 @@ class _RoleSelectionPageState extends State<RoleSelectionPage>
                         'New to MechanicConnect?',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: AppTheme.textSecondary,
+                          fontSize: dim.font16,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: dim.height10),
                       TextButton(
                         onPressed: () => _navigateToSignup(),
                         style: TextButton.styleFrom(
                           foregroundColor: AppTheme.primaryColor,
-                          textStyle: const TextStyle(
-                            fontSize: 16,
+                          textStyle: TextStyle(
+                            fontSize: dim.font16,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -166,7 +174,7 @@ class _RoleSelectionPageState extends State<RoleSelectionPage>
                     ],
                   ),
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: dim.height20),
               ],
             ),
           ),
@@ -176,7 +184,8 @@ class _RoleSelectionPageState extends State<RoleSelectionPage>
   }
 
   Widget _buildRoleCard(
-    BuildContext context, {
+    BuildContext context,
+    Dimensions dim, {
     required IconData icon,
     required String title,
     required String subtitle,
@@ -185,10 +194,10 @@ class _RoleSelectionPageState extends State<RoleSelectionPage>
   }) {
     return Container(
       width: double.infinity,
-      height: 140,
+      height: dim.height45 * 3,
       decoration: BoxDecoration(
         gradient: gradient,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(dim.radius20),
         boxShadow: [
           BoxShadow(
             color: gradient.colors.first.withOpacity(0.3),
@@ -201,25 +210,25 @@ class _RoleSelectionPageState extends State<RoleSelectionPage>
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(dim.radius20),
           child: Padding(
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.all(dim.width20),
             child: Row(
               children: [
                 Container(
-                  width: 60,
-                  height: 60,
+                  width: dim.height45 + dim.height15,
+                  height: dim.height45 + dim.height15,
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(dim.radius15),
                   ),
                   child: Icon(
                     icon,
-                    size: 30,
+                    size: dim.iconSize24 + dim.height10,
                     color: Colors.white,
                   ),
                 ),
-                const SizedBox(width: 20),
+                SizedBox(width: dim.width20),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -227,17 +236,17 @@ class _RoleSelectionPageState extends State<RoleSelectionPage>
                     children: [
                       Text(
                         title,
-                        style: const TextStyle(
-                          fontSize: 20,
+                        style: TextStyle(
+                          fontSize: dim.font20,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: dim.height10 / 2),
                       Text(
                         subtitle,
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: dim.font16,
                           color: Colors.white.withOpacity(0.9),
                           height: 1.3,
                         ),
@@ -248,7 +257,7 @@ class _RoleSelectionPageState extends State<RoleSelectionPage>
                 Icon(
                   Icons.arrow_forward_ios,
                   color: Colors.white.withOpacity(0.8),
-                  size: 20,
+                  size: dim.iconSize24,
                 ),
               ],
             ),
