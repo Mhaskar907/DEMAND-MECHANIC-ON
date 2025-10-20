@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'MechanicOnDemand',
-        theme: AppTheme.darkTheme,
+        theme: AppTheme.lightTheme,
         home: const App(),
       ),
     );

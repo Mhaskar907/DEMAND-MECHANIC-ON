@@ -1,4 +1,4 @@
-// lib/auth_service.dart
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -11,7 +11,7 @@ class AuthService with ChangeNotifier {
 
   AuthService() {
     _getCurrentUser();
-    _supabase.auth.onAuthStateChange.listen((AuthState data) {
+    _supabase.auth.onAuthStateChange.listen((data) {
       _getCurrentUser();
     });
   }
@@ -23,7 +23,7 @@ class AuthService with ChangeNotifier {
   Future<void> _getCurrentUser() async {
     try {
       _currentUser = _supabase.auth.currentUser;
-      
+
       if (_currentUser != null) {
         // Fetch user role from profiles table
         final profile = await _supabase
@@ -46,7 +46,8 @@ class AuthService with ChangeNotifier {
         }
       }
     } catch (e) {
-      print('Error getting current user: $e');
+      // keep lightweight logging
+      debugPrint('Error getting current user: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -59,34 +60,29 @@ class AuthService with ChangeNotifier {
     required String role,
   }) async {
     try {
-      // Sign up without email confirmation
       final AuthResponse response = await _supabase.auth.signUp(
         email: email,
         password: password,
-        data: {
-          'role': role,
-        },
+        data: {'role': role},
       );
-      
+
       if (response.user != null) {
-        // Insert user profile with role
         await _supabase.from('profiles').insert({
           'id': response.user!.id,
           'email': email,
           'role': role,
         });
-        
-        // Immediately sign in after sign up
+
         final AuthResponse loginResponse = await _supabase.auth.signInWithPassword(
           email: email,
           password: password,
         );
-        
+
         _currentUser = loginResponse.user;
         _currentUserRole = role;
         notifyListeners();
       }
-      
+
       return null;
     } on AuthException catch (e) {
       return e.message;
@@ -104,20 +100,19 @@ class AuthService with ChangeNotifier {
         email: email,
         password: password,
       );
-      
+
       _currentUser = response.user;
-      
-      // Fetch user role
+
       final profile = await _supabase
           .from('profiles')
           .select('role')
           .eq('id', _currentUser!.id)
           .maybeSingle();
-          
+
       if (profile != null) {
         _currentUserRole = profile['role'];
       }
-      
+
       notifyListeners();
       return null;
     } on AuthException catch (e) {
@@ -133,23 +128,32 @@ class AuthService with ChangeNotifier {
       _currentUser = null;
       _currentUserRole = null;
       notifyListeners();
-      print('User signed out successfully');
+      debugPrint('User signed out successfully');
     } catch (e) {
-      print('Error signing out: $e');
+      debugPrint('Error signing out: $e');
     }
   }
 
+  /// Initiate Google sign-in.
+  /// Provide an optional [role] to set the user's role on first OAuth login.
   Future<String?> signInWithGoogle({String? role}) async {
     try {
-      // Keep track of intended role during OAuth flow for first-time users
       _pendingRoleForOAuth = role;
-      await _supabase.auth.signInWithOAuth(
-        OAuthProvider.google,
-        // You can configure deep-links/redirects in your Supabase project settings
-        // and optionally set redirectTo here if needed.
-      );
-      // The onAuthStateChange listener will pick up the session and call _getCurrentUser,
-      // which will create the profile with the pending role if needed.
+
+      if (kIsWeb) {
+        // Web flow - use CORRECT Supabase URL
+        await _supabase.auth.signInWithOAuth(
+          OAuthProvider.google,
+          redirectTo: 'https://wrdypxezeqfogpcobgbm.supabase.co/auth/v1/callback',
+        );
+      } else {
+        // Mobile flow - use Android deep link
+        await _supabase.auth.signInWithOAuth(
+          OAuthProvider.google,
+          redirectTo: 'com.example.pro_v1://login-callback/',
+        );
+      }
+
       return null;
     } on AuthException catch (e) {
       _pendingRoleForOAuth = null;
