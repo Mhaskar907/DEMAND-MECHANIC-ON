@@ -41,31 +41,28 @@ class _FindMechanicsPageState extends State<FindMechanicsPage> {
   Future<void> _loadMechanics() async {
     try {
       print('Loading mechanics from database...');
-      
       final mechanicsData = await Supabase.instance.client
           .from('mechanic_profiles')
           .select('*')
           .order('name');
 
       print('Raw data from database: $mechanicsData');
-      
+
       setState(() {
         _mechanics.clear();
         if (mechanicsData != null && mechanicsData.isNotEmpty) {
           print('Found ${mechanicsData.length} mechanics in database');
           for (var mechanicMap in mechanicsData) {
-            print('Processing mechanic: $mechanicMap');
             try {
               final mechanic = MechanicListItem.fromMap(mechanicMap);
               _mechanics.add(mechanic);
-              print('Added mechanic: ${mechanic.name}');
             } catch (e) {
               print('Error creating mechanic from map: $e');
               print('Problematic map: $mechanicMap');
             }
           }
         } else {
-          print('No mechanics found in database or mechanicsData is null/empty');
+          print('No mechanics found in database.');
         }
         _isLoading = false;
       });
@@ -80,17 +77,16 @@ class _FindMechanicsPageState extends State<FindMechanicsPage> {
 
   List<MechanicListItem> get _filteredMechanics {
     return _mechanics.where((mechanic) {
-      // Filter by search query
       final matchesSearch = _searchQuery.isEmpty ||
           mechanic.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          mechanic.specialization.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          mechanic.specialization
+              .toLowerCase()
+              .contains(_searchQuery.toLowerCase()) ||
           mechanic.location.toLowerCase().contains(_searchQuery.toLowerCase());
 
-      // Filter by specialization
       final matchesSpecialization = _selectedSpecialization == 'All' ||
           mechanic.specialization == _selectedSpecialization;
 
-      // Filter by availability
       final matchesAvailability = !_showAvailableOnly || mechanic.isAvailable;
 
       return matchesSearch && matchesSpecialization && matchesAvailability;
@@ -104,8 +100,6 @@ class _FindMechanicsPageState extends State<FindMechanicsPage> {
       } else {
         _selectedMechanics.add(mechanic);
       }
-      
-      // Exit selection mode if no mechanics selected
       if (_selectedMechanics.isEmpty) {
         _selectionMode = false;
       }
@@ -182,8 +176,6 @@ class _FindMechanicsPageState extends State<FindMechanicsPage> {
           _buildDetailRow(Icons.location_on, mechanic.location),
           _buildDetailRow(Icons.phone, mechanic.phoneNumber),
           _buildDetailRow(Icons.email, mechanic.email),
-          _buildDetailRow(Icons.star, 'Rating: ${mechanic.rating} (${mechanic.totalReviews} reviews)'),
-          _buildDetailRow(Icons.work, 'Experience: ${mechanic.yearsOfExperience} years'),
           _buildDetailRow(
             Icons.circle,
             mechanic.isAvailable ? 'Available' : 'Not Available',
@@ -239,7 +231,6 @@ class _FindMechanicsPageState extends State<FindMechanicsPage> {
   }
 
   void _contactMechanic(MechanicListItem mechanic) {
-    // Implement phone call functionality
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Calling ${mechanic.name} at ${mechanic.phoneNumber}')),
     );
@@ -247,7 +238,6 @@ class _FindMechanicsPageState extends State<FindMechanicsPage> {
   }
 
   void _messageMechanic(MechanicListItem mechanic) {
-    // Implement messaging functionality
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Messaging ${mechanic.name}')),
     );
@@ -256,13 +246,13 @@ class _FindMechanicsPageState extends State<FindMechanicsPage> {
 
   Widget _buildMechanicCard(MechanicListItem mechanic) {
     final isSelected = _selectedMechanics.contains(mechanic);
-    
+
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
       color: isSelected ? Colors.blue[50] : null,
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: isSelected ? Colors.blue : Colors.blue,
+          backgroundColor: Colors.blue,
           child: Text(
             mechanic.name[0].toUpperCase(),
             style: const TextStyle(color: Colors.white),
@@ -327,7 +317,7 @@ class _FindMechanicsPageState extends State<FindMechanicsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: _selectionMode 
+        title: _selectionMode
             ? Text('Selected: ${_selectedMechanics.length}')
             : const Text('Find Mechanics'),
         actions: [
@@ -379,9 +369,12 @@ class _FindMechanicsPageState extends State<FindMechanicsPage> {
                   },
                 ),
                 const SizedBox(height: 12),
+
+                // ✅ Dropdown + FilterChip side by side (no overflow)
                 Row(
                   children: [
                     Expanded(
+                      flex: 4,
                       child: DropdownButtonFormField<String>(
                         value: _selectedSpecialization,
                         items: _specializations
@@ -402,15 +395,19 @@ class _FindMechanicsPageState extends State<FindMechanicsPage> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    FilterChip(
-                      label: const Text('Available Only'),
-                      selected: _showAvailableOnly,
-                      onSelected: (selected) {
-                        setState(() {
-                          _showAvailableOnly = selected;
-                        });
-                      },
+                    const SizedBox(width: 10),
+                    Flexible(
+                      flex: 2,
+                      fit: FlexFit.loose,
+                      child: FilterChip(
+                        label: const Text('Available Only'),
+                        selected: _showAvailableOnly,
+                        onSelected: (selected) {
+                          setState(() {
+                            _showAvailableOnly = selected;
+                          });
+                        },
+                      ),
                     ),
                   ],
                 ),
@@ -431,10 +428,12 @@ class _FindMechanicsPageState extends State<FindMechanicsPage> {
                             : RefreshIndicator(
                                 onRefresh: _loadMechanics,
                                 child: ListView.builder(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                                  padding:
+                                      const EdgeInsets.symmetric(horizontal: 16),
                                   itemCount: _filteredMechanics.length,
                                   itemBuilder: (context, index) {
-                                    return _buildMechanicCard(_filteredMechanics[index]);
+                                    return _buildMechanicCard(
+                                        _filteredMechanics[index]);
                                   },
                                 ),
                               ),

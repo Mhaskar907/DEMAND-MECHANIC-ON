@@ -86,7 +86,7 @@ class _UserServiceHistoryPageState extends State<UserServiceHistoryPage>
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
-          gradient: AppTheme.backgroundGradient,
+          color: Colors.white, // Changed from gradient to white background
         ),
         child: SafeArea(
           child: FadeTransition(
@@ -132,11 +132,18 @@ class _UserServiceHistoryPageState extends State<UserServiceHistoryPage>
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
           decoration: BoxDecoration(
-            gradient: AppTheme.primaryGradient,
+            color: Colors.white, // Changed from gradient to white
             borderRadius: const BorderRadius.only(
               bottomLeft: Radius.circular(30),
               bottomRight: Radius.circular(30),
             ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: SafeArea(
             child: Padding(
@@ -149,12 +156,12 @@ class _UserServiceHistoryPageState extends State<UserServiceHistoryPage>
                     icon: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color.fromARGB(255, 8, 8, 8).withOpacity(0.2),
+                        color: Colors.grey.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Icon(
                         Icons.arrow_back,
-                        color: Color.fromARGB(255, 16, 15, 15),
+                        color: Colors.black,
                         size: 20,
                       ),
                     ),
@@ -168,7 +175,7 @@ class _UserServiceHistoryPageState extends State<UserServiceHistoryPage>
                         Text(
                           'Service History',
                           style: const TextStyle(
-                            color: Color.fromARGB(255, 244, 242, 242),
+                            color: Colors.black,
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
                           ),
@@ -177,7 +184,7 @@ class _UserServiceHistoryPageState extends State<UserServiceHistoryPage>
                         Text(
                           'Your past service requests',
                           style: const TextStyle(
-                            color: Color.fromARGB(255, 244, 242, 242),
+                            color: Colors.black87,
                             fontSize: 14,
                             fontWeight: FontWeight.w400,
                           ),
@@ -202,15 +209,19 @@ class _UserServiceHistoryPageState extends State<UserServiceHistoryPage>
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 11, 11, 11),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.grey.withOpacity(0.1),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
         ],
+        border: Border.all(
+          color: Colors.grey.withOpacity(0.2),
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -219,7 +230,7 @@ class _UserServiceHistoryPageState extends State<UserServiceHistoryPage>
             'Overview',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
-              color: AppTheme.textPrimary,
+              color: Colors.black,
             ),
           ),
           const SizedBox(height: 16),
@@ -274,7 +285,7 @@ class _UserServiceHistoryPageState extends State<UserServiceHistoryPage>
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: color.withOpacity(0.2),
+          color: color.withOpacity(0.3),
           width: 1,
         ),
       ),
@@ -297,7 +308,7 @@ class _UserServiceHistoryPageState extends State<UserServiceHistoryPage>
           Text(
             title,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: AppTheme.textSecondary,
+              color: Colors.black87,
             ),
           ),
         ],
@@ -323,11 +334,14 @@ class _UserServiceHistoryPageState extends State<UserServiceHistoryPage>
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.grey.withOpacity(0.1),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
           ],
+          border: Border.all(
+            color: Colors.grey.withOpacity(0.2),
+          ),
         ),
         child: Column(
           children: [
@@ -348,7 +362,7 @@ class _UserServiceHistoryPageState extends State<UserServiceHistoryPage>
             Text(
               _errorMessage!,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppTheme.textSecondary,
+                color: Colors.black87,
               ),
               textAlign: TextAlign.center,
             ),
@@ -370,24 +384,27 @@ class _UserServiceHistoryPageState extends State<UserServiceHistoryPage>
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.grey.withOpacity(0.1),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
           ],
+          border: Border.all(
+            color: Colors.grey.withOpacity(0.2),
+          ),
         ),
         child: Column(
           children: [
             Icon(
               Icons.history,
-              color: AppTheme.textTertiary,
+              color: Colors.grey,
               size: 64,
             ),
             const SizedBox(height: 16),
             Text(
               'No Service History',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: const Color.fromARGB(255, 17, 16, 16),
+                color: Colors.black,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -395,7 +412,7 @@ class _UserServiceHistoryPageState extends State<UserServiceHistoryPage>
             Text(
               'You haven\'t made any service requests yet.\nStart by finding a mechanic!',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: const Color.fromARGB(255, 0, 0, 0),
+                color: Colors.black87,
               ),
               textAlign: TextAlign.center,
             ),
@@ -411,7 +428,7 @@ class _UserServiceHistoryPageState extends State<UserServiceHistoryPage>
           'Recent Requests',
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
             fontWeight: FontWeight.bold,
-            color: const Color.fromARGB(255, 249, 246, 246),
+            color: Colors.black,
           ),
         ),
         const SizedBox(height: 16),
@@ -425,15 +442,19 @@ class _UserServiceHistoryPageState extends State<UserServiceHistoryPage>
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 8, 8, 8),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.grey.withOpacity(0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
+        border: Border.all(
+          color: Colors.grey.withOpacity(0.2),
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -461,13 +482,13 @@ class _UserServiceHistoryPageState extends State<UserServiceHistoryPage>
                       request.vehicleType,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: AppTheme.textPrimary,
+                        color: Colors.black,
                       ),
                     ),
                     Text(
                       request.vehicleModel,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppTheme.textSecondary,
+                        color: Colors.black87,
                       ),
                     ),
                   ],
@@ -478,6 +499,9 @@ class _UserServiceHistoryPageState extends State<UserServiceHistoryPage>
                 decoration: BoxDecoration(
                   color: _getStatusColor(request.status).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: _getStatusColor(request.status).withOpacity(0.3),
+                  ),
                 ),
                 child: Text(
                   request.status.toUpperCase(),
@@ -494,7 +518,7 @@ class _UserServiceHistoryPageState extends State<UserServiceHistoryPage>
           Text(
             request.issueDescription,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: AppTheme.textPrimary,
+              color: Colors.black87,
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -504,7 +528,7 @@ class _UserServiceHistoryPageState extends State<UserServiceHistoryPage>
             children: [
               Icon(
                 Icons.location_on,
-                color: AppTheme.textSecondary,
+                color: Colors.black54,
                 size: 16,
               ),
               const SizedBox(width: 4),
@@ -512,20 +536,20 @@ class _UserServiceHistoryPageState extends State<UserServiceHistoryPage>
                 child: Text(
                   request.userLocation,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppTheme.textSecondary,
+                    color: Colors.black54,
                   ),
                 ),
               ),
               Icon(
                 Icons.access_time,
-                color: AppTheme.textSecondary,
+                color: Colors.black54,
                 size: 16,
               ),
               const SizedBox(width: 4),
               Text(
                 _formatDate(request.createdAt),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppTheme.textSecondary,
+                  color: Colors.black54,
                 ),
               ),
             ],
@@ -546,7 +570,7 @@ class _UserServiceHistoryPageState extends State<UserServiceHistoryPage>
       case 'rejected':
         return AppTheme.errorColor;
       default:
-        return AppTheme.textSecondary;
+        return Colors.grey;
     }
   }
 
