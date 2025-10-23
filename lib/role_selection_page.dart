@@ -94,7 +94,7 @@ class _RoleSelectionPageState extends State<RoleSelectionPage>
                         ),
                         SizedBox(height: dim.height30),
                         Text(
-                          'MechanicConnect',
+                          'MechanicOnDemand',
                           style: Theme.of(context).textTheme.displayMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: AppTheme.textPrimary,
@@ -153,7 +153,7 @@ class _RoleSelectionPageState extends State<RoleSelectionPage>
                   child: Column(
                     children: [
                       Text(
-                        'New to MechanicConnect?',
+                        'New to MechanicOnDemand?',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: AppTheme.textSecondary,
                           fontSize: dim.font16,
