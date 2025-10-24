@@ -89,10 +89,6 @@ class _SignupPageState extends State<SignupPage>
                     // Signup Form
                     _buildSignupForm(dim),
                     SizedBox(height: dim.height30),
-                    _buildOrDivider(dim),
-                    SizedBox(height: dim.height15),
-                    _buildGoogleButton(dim),
-                    SizedBox(height: dim.height30),
                     // Login Link
                     _buildLoginLink(dim),
                     SizedBox(height: dim.height20),
@@ -101,45 +97,6 @@ class _SignupPageState extends State<SignupPage>
               ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildOrDivider(Dimensions dim) {
-    return Row(
-      children: [
-        Expanded(child: Divider(color: Colors.grey[300])),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: dim.width10),
-          child: const Text('OR'),
-        ),
-        Expanded(child: Divider(color: Colors.grey[300])),
-      ],
-    );
-  }
-
-  Widget _buildGoogleButton(Dimensions dim) {
-    return SizedBox(
-      height: dim.height45 + dim.height10,
-      child: OutlinedButton.icon(
-        onPressed: _isLoading ? null : _signUpWithGoogle,
-        style: OutlinedButton.styleFrom(
-          side: BorderSide(color: Colors.grey[300]!),
-          backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(dim.radius15),
-          ),
-        ),
-        icon: Image.asset(
-          'assets/google.png',
-          width: dim.iconSize24,
-          height: dim.iconSize24,
-          errorBuilder: (_, __, ___) => Icon(Icons.login, size: dim.iconSize16),
-        ),
-        label: Text(
-          'Continue with Google',
-          style: TextStyle(fontWeight: FontWeight.w600, fontSize: dim.font16),
         ),
       ),
     );
@@ -207,7 +164,7 @@ class _SignupPageState extends State<SignupPage>
         ),
         SizedBox(height: dim.height10),
         Text(
-          'Join MechanicConnect today',
+          'Join MechanicOnDemand today',
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
             color: AppTheme.textSecondary,
             fontSize: dim.font16,
